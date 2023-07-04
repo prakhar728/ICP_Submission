@@ -1,22 +1,21 @@
-type Message = record {
+type MedicalRecord = record {
   id : text;
   attachmentURL : text;
   title : text;
-  body : text;
   createdAt : nat64;
   updatedAt : opt nat64;
+  CreatorId : principal;
 };
-type MessagePayload = record {
-  attachmentURL : text;
-  title : text;
-  body : text;
-};
-type _AzleResult = variant { Ok : Message; Err : text };
-type _AzleResult_1 = variant { Ok : vec Message; Err : text };
+type MedicalRecordPayload = record { attachmentURL : text; title : text };
+type _AzleResult = variant { Ok : MedicalRecord; Err : text };
+type _AzleResult_1 = variant { Ok : vec MedicalRecord; Err : text };
+type _AzleResult_2 = variant { Ok : principal; Err : text };
 service : () -> {
-  addMessage : (MessagePayload) -> (_AzleResult);
+  addRecord : (MedicalRecordPayload) -> (_AzleResult);
   deleteMessage : (text) -> (_AzleResult);
-  getMessage : (text) -> (_AzleResult) query;
-  getMessages : () -> (_AzleResult_1) query;
-  updateMessage : (text, MessagePayload) -> (_AzleResult);
+  getAllRecords : () -> (_AzleResult_1) query;
+  getCaller : () -> (_AzleResult_2) query;
+  getCreatorId : (text) -> (_AzleResult_2) query;
+  getRecord : (text) -> (_AzleResult) query;
+  updateMessage : (text, MedicalRecordPayload) -> (_AzleResult);
 }

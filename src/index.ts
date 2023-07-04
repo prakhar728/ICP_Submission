@@ -1,84 +1,100 @@
 // cannister code goes here
-import { $query, $update, Record, StableBTreeMap, Vec, match, Result, nat64, ic, Opt } from 'azle';
+import { $query, $update, Record, StableBTreeMap, Vec, match, Result, nat64, ic, Opt,Principal } from 'azle';
 import random from "random";
 
 
 /**
- * This type represents a message that can be listed on a board.
+ * This type Medical Reocrd that can be listed on a board.
  */
-type Message = Record<{
+type MedicalRecord = Record<{
     id: string;
     title: string;
-    body: string;
+    CreatorId:Principal;
     attachmentURL: string;
     createdAt: nat64;
     updatedAt: Opt<nat64>;
 }>
 
-type MessagePayload = Record<{
+type MedicalRecordPayload = Record<{
     title: string;
-    body: string;
     attachmentURL: string;
 }>
 
 
-const messageStorage = new StableBTreeMap<string, Message>(0, 44, 1024);
+const recordStorage = new StableBTreeMap<string, MedicalRecord>(0, 44, 1024);
 
 
 $query;
-export function getMessages(): Result<Vec<Message>, string> {
-    return Result.Ok(messageStorage.values());
+export function getAllRecords(): Result<Vec<MedicalRecord>, string> {
+    let records = recordStorage.values();
+    let filteredRecords = [];
+    for (let record of records) {
+        if (record.CreatorId.toString() === ic.caller().toString()) {
+            filteredRecords.push(record);
+        }
+    }
+    return Result.Ok(filteredRecords);
 }
 
 
 $query;
-export function getMessage(id: string): Result<Message, string> {
-    return match(messageStorage.get(id), {
-        Some: (message) => Result.Ok<Message, string>(message),
-        None: () => Result.Err<Message, string>(`a message with id=${id} not found`)
+export function getRecord(id: string): Result<MedicalRecord, string> {
+    return match(recordStorage.get(id), {
+        Some: (record) =>{
+            if(record.CreatorId.toString() !== ic.caller().toString())
+            return Result.Err<MedicalRecord, string>(`Only the creator can update the Record`);
+            return Result.Ok<MedicalRecord, string>(record)},
+        None: () => Result.Err<MedicalRecord, string>(`a message with id=${id} not found`)
     });
 }
 
+$query;
+export function getCaller(): Result<Principal,string> {
+    return Result.Ok(ic.caller());
+}
 
+$query;
+export function getCreatorId(id: string): Result<Principal,string> {
+    return match(recordStorage.get(id), {
+        Some: (record) => Result.Ok<Principal, string>(record.CreatorId),
+        None: () => Result.Err<Principal, string>(`a message with id=${id} not found`)
+    });
+}
 $update;
-export function addMessage(payload: MessagePayload): Result<Message, string> {
-    const message: Message = { id: generateRandomString44(), createdAt: ic.time(), updatedAt: Opt.None, ...payload };
-    messageStorage.insert(message.id, message);
+export function addRecord(payload: MedicalRecordPayload): Result<MedicalRecord, string> {
+    const message: MedicalRecord = { id: generateRandomString44(),CreatorId:ic.caller(), createdAt: ic.time(), updatedAt: Opt.None, ...payload };
+    recordStorage.insert(message.id, message);
     return Result.Ok(message);
 }
 
 $update;
-export function updateMessage(id: string, payload: MessagePayload): Result<Message, string> {
-    return match(messageStorage.get(id), {
-        Some: (message) => {
-            const updatedMessage: Message = {...message, ...payload, updatedAt: Opt.Some(ic.time())};
-            messageStorage.insert(message.id, updatedMessage);
-            return Result.Ok<Message, string>(updatedMessage);
+export function updateMessage(id: string, payload: MedicalRecordPayload): Result<MedicalRecord, string> {
+    return match(recordStorage.get(id), {
+        Some: (record) => {
+            if(record.CreatorId.toString() !== ic.caller().toString())
+            return Result.Err<MedicalRecord, string>(`Only the creator can update the Record`);
+            const updatedRecord: MedicalRecord = {...record, ...payload, updatedAt: Opt.Some(ic.time())};
+            recordStorage.insert(record.id, updatedRecord);
+            return Result.Ok<MedicalRecord, string>(updatedRecord);
         },
-        None: () => Result.Err<Message, string>(`couldn't update a message with id=${id}. message not found`)
+        None: () => Result.Err<MedicalRecord, string>(`couldn't update a message with id=${id}. message not found`)
     });
 
 }
 
 $update;
-export function deleteMessage(id: string): Result<Message, string> {
-    return match(messageStorage.remove(id), {
-        Some: (deletedMessage) => Result.Ok<Message, string>(deletedMessage),
-        None: () => Result.Err<Message, string>(`couldn't delete a message with id=${id}. message not found.`)
+export function deleteMessage(id: string): Result<MedicalRecord, string> {
+    return match(recordStorage.get(id), {
+        Some: (record) => {
+            if(record.CreatorId.toString() !== ic.caller().toString())
+            return Result.Err<MedicalRecord, string>(`Only the creator can delete the Record`);
+            recordStorage.remove(id);
+           return Result.Ok<MedicalRecord, string>(record)
+        },
+        None: () => Result.Err<MedicalRecord, string>(`couldn't delete a message with id=${id}. message not found.`)
     });
 }
 
-// globalThis.crypto = {
-//     getRandomValues: () => {
-//       let array = new Uint8Array(32)
-  
-//       for (let i = 0; i < array.length; i++) {
-//         array[i] = Math.floor(Math.random() * 256)
-//       }
-  
-//       return array;
-//     }
-//   };
 
 
 function generateRandomString44() {
