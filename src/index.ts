@@ -68,7 +68,7 @@ export function addRecord(payload: MedicalRecordPayload): Result<MedicalRecord, 
 }
 
 $update;
-export function updateMessage(id: string, payload: MedicalRecordPayload): Result<MedicalRecord, string> {
+export function updateRecord(id: string, payload: MedicalRecordPayload): Result<MedicalRecord, string> {
     return match(recordStorage.get(id), {
         Some: (record) => {
             if(record.CreatorId.toString() !== ic.caller().toString())
@@ -83,7 +83,7 @@ export function updateMessage(id: string, payload: MedicalRecordPayload): Result
 }
 
 $update;
-export function deleteMessage(id: string): Result<MedicalRecord, string> {
+export function deleteRecord(id: string): Result<MedicalRecord, string> {
     return match(recordStorage.get(id), {
         Some: (record) => {
             if(record.CreatorId.toString() !== ic.caller().toString())

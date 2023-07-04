@@ -4,8 +4,15 @@ This a ***Azle*** Smart Contract that let's a person store their medical records
 
 
 # GUIDE TO FUNCTIONS
-
-
+1. getAllRecords() = Fetches records of the caller. Only the records that you have created will be returned.
+2. getRecord(id: string) = Fetch a particular record using the Record Id. Access control is implemented here too.
+3. addRecord(payload: MedicalRecordPayload) = Add medical records. They have to follow the pattern of 
+```json
+ title: string;
+attachmentURL: string;
+```
+4. updateRecord() = Update the contents of the Records. Access control applicable.
+5. deleteRecord() = Delete Records from the mapping. Access control applicable.
 
 # RUN LOCALLY
 
