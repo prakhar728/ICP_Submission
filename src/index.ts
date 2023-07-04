@@ -4,7 +4,7 @@ import random from "random";
 
 
 /**
- * This type Medical Reocrd that can be listed on a board.
+ * This type Medical Record that can be listed on a board.
  */
 type MedicalRecord = Record<{
     id: string;
@@ -44,7 +44,7 @@ export function getRecord(id: string): Result<MedicalRecord, string> {
             if(record.CreatorId.toString() !== ic.caller().toString())
             return Result.Err<MedicalRecord, string>(`Only the creator can update the Record`);
             return Result.Ok<MedicalRecord, string>(record)},
-        None: () => Result.Err<MedicalRecord, string>(`a message with id=${id} not found`)
+        None: () => Result.Err<MedicalRecord, string>(`The Record with id=${id} not found`)
     });
 }
 
@@ -57,14 +57,14 @@ $query;
 export function getCreatorId(id: string): Result<Principal,string> {
     return match(recordStorage.get(id), {
         Some: (record) => Result.Ok<Principal, string>(record.CreatorId),
-        None: () => Result.Err<Principal, string>(`a message with id=${id} not found`)
+        None: () => Result.Err<Principal, string>(`The Record with id=${id} not found`)
     });
 }
 $update;
 export function addRecord(payload: MedicalRecordPayload): Result<MedicalRecord, string> {
-    const message: MedicalRecord = { id: generateRandomString44(),CreatorId:ic.caller(), createdAt: ic.time(), updatedAt: Opt.None, ...payload };
-    recordStorage.insert(message.id, message);
-    return Result.Ok(message);
+    const record: MedicalRecord = { id: generateRandomString44(),CreatorId:ic.caller(), createdAt: ic.time(), updatedAt: Opt.None, ...payload };
+    recordStorage.insert(record.id, record);
+    return Result.Ok(record);
 }
 
 $update;
@@ -77,7 +77,7 @@ export function updateMessage(id: string, payload: MedicalRecordPayload): Result
             recordStorage.insert(record.id, updatedRecord);
             return Result.Ok<MedicalRecord, string>(updatedRecord);
         },
-        None: () => Result.Err<MedicalRecord, string>(`couldn't update a message with id=${id}. message not found`)
+        None: () => Result.Err<MedicalRecord, string>(`couldn't update a record with id=${id}. Record not found`)
     });
 
 }
@@ -91,7 +91,7 @@ export function deleteMessage(id: string): Result<MedicalRecord, string> {
             recordStorage.remove(id);
            return Result.Ok<MedicalRecord, string>(record)
         },
-        None: () => Result.Err<MedicalRecord, string>(`couldn't delete a message with id=${id}. message not found.`)
+        None: () => Result.Err<MedicalRecord, string>(`couldn't delete a record with id=${id}. Record not found.`)
     });
 }
 
