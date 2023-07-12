@@ -12,10 +12,10 @@ type _AzleResult_1 = variant { Ok : vec MedicalRecord; Err : text };
 type _AzleResult_2 = variant { Ok : principal; Err : text };
 service : () -> {
   addRecord : (MedicalRecordPayload) -> (_AzleResult);
-  deleteMessage : (text) -> (_AzleResult);
+  deleteRecord : (text) -> (_AzleResult);
   getAllRecords : () -> (_AzleResult_1) query;
   getCaller : () -> (_AzleResult_2) query;
   getCreatorId : (text) -> (_AzleResult_2) query;
   getRecord : (text) -> (_AzleResult) query;
-  updateMessage : (text, MedicalRecordPayload) -> (_AzleResult);
+  updateRecord : (text, MedicalRecordPayload) -> (_AzleResult);
 }
